@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Workout Week</title>
+
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f7f3ee;
+  color: #292522;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 600px;
+  margin: auto;
+}
+
+h1 {
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  color: #777;
+  margin-bottom: 25px;
+}
+
+.card {
+  background: white;
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+}
+
+.progress {
+  height: 9px;
+  background: #eee;
+  border-radius: 20px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background: #8d6e63;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+button {
+  border: none;
+  padding: 13px;
+  border-radius: 13px;
+  background: #292522;
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.secondary {
+  background: white;
+  color: #292522;
+  border: 1px solid #ddd;
+}
+
+.todo {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.section {
+  font-weight: bold;
+  margin: 25px 0 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>My Workout Week</h1>
+
+<div class="subtitle" id="week"></div>
+
+<div id="goals"></div>
+
+<div class="section">What are you doing today?</div>
+
+<div class="buttons" id="buttons"></div>
+
+<div class="section">Still to do</div>
+
+<div class="card" id="remaining"></div>
+
+<div class="buttons">
+<button class="secondary" onclick="undo()">↩ Undo</button>
+<button class="secondary" onclick="resetWeek()">Reset Week</button>
+</div>
+
+</div>
+
+<script>
+
+const defaultGoals = {
+  "🍑 Glutes": 2,
+  "💪 Upper Body": 2,
+  "🦴 Scoliosis": 3,
+  "🚶 Cardio": 1,
+  "🔥 Core": 1
+};
+
+let data = JSON.parse(localStorage.getItem("workoutWeek"));
+
+if (!data) {
+  data = {
+    goals: defaultGoals,
+    completed: {},
+    log: [],
+    week: getWeek()
+  };
+}
+
+function getWeek() {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+
+  const monday = new Date(d.setDate(diff));
+
+  return monday.toISOString().split("T")[0];
+}
+
+function checkWeek() {
+
+  const currentWeek = getWeek();
+
+  if (data.week !== currentWeek) {
+
+    data.completed = {};
+    data.log = [];
+    data.week = currentWeek;
+
+    save();
+  }
+}
+
+function save() {
+  localStorage.setItem("workoutWeek", JSON.stringify(data));
+}
+
+function logWorkout(type) {
+
+  data.completed[type] = (data.completed[type] || 0) + 1;
+
+  data.log.push(type);
+
+  save();
+
+  render();
+}
+
+function undo() {
+
+  if (data.log.length === 0) return;
+
+  const last = data.log.pop();
+
+  data.completed[last]--;
+
+  save();
+
+  render();
+}
+
+function resetWeek() {
+
+  if (!confirm("Reset your workouts for this week?")) return;
+
+  data.completed = {};
+  data.log = [];
+
+  save();
+
+  render();
+}
+
+function render() {
+
+  checkWeek();
+
+  const monday = new Date(data.week + "T12:00:00");
+
+  document.getElementById("week").innerText =
+    "Week of " +
+    monday.toLocaleDateString(undefined, {
+      month: "long",
+      day: "numeric"
+    });
+
+  let goalsHTML = "";
+
+  for (const type in data.goals) {
+
+    const goal = data.goals[type];
+
+    const completed = data.completed[type] || 0;
+
+    const percent =
+      Math.min((completed / goal) * 100, 100);
+
+    goalsHTML += `
+      <div class="card">
+
+        <div class="row">
+          <span>${type}</span>
+          <span>${completed} / ${goal}</span>
+        </div>
+
+        <div class="progress">
+          <div class="fill"
+               style="width:${percent}%">
+          </div>
+        </div>
+
+      </div>
+    `;
+  }
+
+  document.getElementById("goals").innerHTML =
+    goalsHTML;
+
+  let buttonsHTML = "";
+
+  for (const type in data.goals) {
+
+    buttonsHTML += `
+      <button onclick="logWorkout('${type}')">
+        + ${type}
+      </button>
+    `;
+  }
+
+  document.getElementById("buttons").innerHTML =
+    buttonsHTML;
+
+  let remainingHTML = "";
+
+  let totalRemaining = 0;
+
+  for (const type in data.goals) {
+
+    const remaining =
+      Math.max(
+        data.goals[type] -
+        (data.completed[type] || 0),
+        0
+      );
+
+    if (remaining > 0) {
+
+      totalRemaining += remaining;
+
+      remainingHTML += `
+        <div class="todo">
+          <span>${type}</span>
+          <strong>${remaining} more</strong>
+        </div>
+      `;
+    }
+  }
+
+  if (totalRemaining === 0) {
+
+    remainingHTML =
+      "<strong>🎉 You hit all your goals!</strong>";
+
+  }
+
+  document.getElementById("remaining").innerHTML =
+    remainingHTML;
+}
+
+render();
+
+</script>
+
+</body>
+</html>
