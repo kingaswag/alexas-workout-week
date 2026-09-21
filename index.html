@@ -51,6 +51,85 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
 
+    /* Weekly progress ring */
+
+    .weekly-progress {
+      text-align: center;
+      padding: 24px 20px 22px;
+      margin-bottom: 14px;
+    }
+
+    .ring-wrap {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      margin: 0 auto 18px;
+    }
+
+    .ring-svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+      overflow: visible;
+    }
+
+    .ring-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .ring-percent {
+      font-size: 38px;
+      font-weight: 700;
+      letter-spacing: -1.5px;
+      line-height: 1;
+    }
+
+    .ring-count {
+      color: #777;
+      font-size: 14px;
+      margin-top: 7px;
+    }
+
+    .ring-legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 9px 15px;
+      margin-top: 4px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #666;
+      font-size: 12px;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .ring-empty {
+      stroke: #eeeae6;
+    }
+
+    .ring-segment {
+      fill: none;
+      stroke-width: 18;
+      stroke-linecap: butt;
+      transition: stroke-dasharray 0.4s ease;
+    }
+
     .card-top {
       display: flex;
       justify-content: space-between;
@@ -261,6 +340,15 @@
       .card {
         padding: 18px;
       }
+
+      .ring-wrap {
+        width: 200px;
+        height: 200px;
+      }
+
+      .ring-percent {
+        font-size: 34px;
+      }
     }
   </style>
 </head>
@@ -271,6 +359,37 @@
 
   <h1>My Workout Week</h1>
   <div class="subtitle">Choose what you want to do. I'll keep track.</div>
+
+  <!-- Weekly Progress Ring -->
+
+  <div class="card weekly-progress">
+
+    <div class="ring-wrap">
+
+      <svg
+        id="progressRing"
+        class="ring-svg"
+        viewBox="0 0 220 220"
+        aria-label="Weekly workout progress"
+      ></svg>
+
+      <div class="ring-center">
+
+        <div id="ringPercent" class="ring-percent">
+          0%
+        </div>
+
+        <div id="ringCount" class="ring-count">
+          0 / 9
+        </div>
+
+      </div>
+
+    </div>
+
+    <div id="ringLegend" class="ring-legend"></div>
+
+  </div>
 
   <div id="cards"></div>
 
@@ -323,9 +442,18 @@ const defaultGoals = {
   "Core": 1
 };
 
+const categoryColors = {
+  "Glutes": "#e8a6bd",
+  "Upper Body": "#91a8d0",
+  "Scoliosis Exercises": "#9bbf9b",
+  "Cardio": "#e2ad78",
+  "Core": "#b29acb"
+};
+
 let goals = JSON.parse(localStorage.getItem("workoutGoals")) || defaultGoals;
 
 function getWeekKey() {
+
   const now = new Date();
 
   const day = now.getDay();
@@ -339,6 +467,7 @@ function getWeekKey() {
   monday.setHours(0, 0, 0, 0);
 
   return monday.toISOString().split("T")[0];
+
 }
 
 const currentWeek = getWeekKey();
@@ -346,16 +475,28 @@ const currentWeek = getWeekKey();
 let savedWeek = localStorage.getItem("workoutWeek");
 
 if (savedWeek !== currentWeek) {
+
   localStorage.setItem("workoutWeek", currentWeek);
+
   localStorage.setItem("workoutCounts", JSON.stringify({}));
+
 }
 
 let counts =
   JSON.parse(localStorage.getItem("workoutCounts")) || {};
 
 function save() {
-  localStorage.setItem("workoutCounts", JSON.stringify(counts));
-  localStorage.setItem("workoutGoals", JSON.stringify(goals));
+
+  localStorage.setItem(
+    "workoutCounts",
+    JSON.stringify(counts)
+  );
+
+  localStorage.setItem(
+    "workoutGoals",
+    JSON.stringify(goals)
+  );
+
 }
 
 function render() {
@@ -370,9 +511,11 @@ function render() {
 
     const count = counts[category] || 0;
 
-    const percentage = Math.min((count / goal) * 100, 100);
+    const percentage =
+      Math.min((count / goal) * 100, 100);
 
-    const card = document.createElement("div");
+    const card =
+      document.createElement("div");
 
     card.className = "card";
 
@@ -413,11 +556,14 @@ function render() {
   });
 
   renderRemaining();
+  renderRing();
+
 }
 
 function renderRemaining() {
 
-  const remaining = document.getElementById("remaining");
+  const remaining =
+    document.getElementById("remaining");
 
   const unfinished = [];
 
@@ -427,7 +573,8 @@ function renderRemaining() {
 
     const count = counts[category] || 0;
 
-    const left = Math.max(goal - count, 0);
+    const left =
+      Math.max(goal - count, 0);
 
     if (left > 0) {
 
@@ -450,11 +597,213 @@ function renderRemaining() {
       unfinished.join("<br>");
 
   }
+
+}
+
+function renderRing() {
+
+  const svg =
+    document.getElementById("progressRing");
+
+  const legend =
+    document.getElementById("ringLegend");
+
+  const percentText =
+    document.getElementById("ringPercent");
+
+  const countText =
+    document.getElementById("ringCount");
+
+  svg.innerHTML = "";
+  legend.innerHTML = "";
+
+  const categories =
+    Object.keys(goals);
+
+  const totalGoal =
+    categories.reduce(
+      (sum, category) =>
+        sum + Number(goals[category]),
+      0
+    );
+
+  const totalCompleted =
+    categories.reduce(
+      (sum, category) =>
+        sum + Math.min(
+          counts[category] || 0,
+          goals[category]
+        ),
+      0
+    );
+
+  const overallPercent =
+    totalGoal === 0
+      ? 0
+      : Math.round(
+          (totalCompleted / totalGoal) * 100
+        );
+
+  percentText.textContent =
+    `${overallPercent}%`;
+
+  countText.textContent =
+    `${totalCompleted} / ${totalGoal}`;
+
+  const center = 110;
+  const radius = 82;
+  const circumference =
+    2 * Math.PI * radius;
+
+  /*
+    Draw one empty ring first.
+  */
+
+  const emptyCircle =
+    document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "circle"
+    );
+
+  emptyCircle.setAttribute("cx", center);
+  emptyCircle.setAttribute("cy", center);
+  emptyCircle.setAttribute("r", radius);
+  emptyCircle.setAttribute("class", "ring-empty");
+  emptyCircle.setAttribute("fill", "none");
+  emptyCircle.setAttribute("stroke-width", "18");
+
+  svg.appendChild(emptyCircle);
+
+  /*
+    Each category gets a proportional
+    section of the circle.
+  */
+
+  let offset = 0;
+
+  categories.forEach(category => {
+
+    const goal =
+      Number(goals[category]);
+
+    const completed =
+      Math.min(
+        counts[category] || 0,
+        goal
+      );
+
+    const categoryShare =
+      totalGoal === 0
+        ? 0
+        : goal / totalGoal;
+
+    const sectionLength =
+      circumference * categoryShare;
+
+    const completedLength =
+      sectionLength *
+      (completed / goal);
+
+    /*
+      Tiny gaps between segments make
+      the categories visually distinct.
+    */
+
+    const gap = 3;
+
+    const visibleCompleted =
+      Math.max(
+        completedLength - gap,
+        0
+      );
+
+    if (visibleCompleted > 0) {
+
+      const circle =
+        document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "circle"
+        );
+
+      circle.setAttribute(
+        "cx",
+        center
+      );
+
+      circle.setAttribute(
+        "cy",
+        center
+      );
+
+      circle.setAttribute(
+        "r",
+        radius
+      );
+
+      circle.setAttribute(
+        "class",
+        "ring-segment"
+      );
+
+      circle.setAttribute(
+        "stroke",
+        categoryColors[category] || "#252525"
+      );
+
+      circle.setAttribute(
+        "stroke-dasharray",
+        `${visibleCompleted} ${circumference - visibleCompleted}`
+      );
+
+      circle.setAttribute(
+        "stroke-dashoffset",
+        -offset
+      );
+
+      svg.appendChild(circle);
+
+    }
+
+    offset += sectionLength;
+
+    /*
+      Legend
+    */
+
+    const legendItem =
+      document.createElement("div");
+
+    legendItem.className =
+      "legend-item";
+
+    const dot =
+      document.createElement("span");
+
+    dot.className =
+      "legend-dot";
+
+    dot.style.background =
+      categoryColors[category] || "#252525";
+
+    const label =
+      document.createElement("span");
+
+    label.textContent =
+      category;
+
+    legendItem.appendChild(dot);
+    legendItem.appendChild(label);
+
+    legend.appendChild(legendItem);
+
+  });
+
 }
 
 function logWorkout(category) {
 
-  counts[category] = (counts[category] || 0) + 1;
+  counts[category] =
+    (counts[category] || 0) + 1;
 
   save();
 
@@ -524,17 +873,31 @@ const blurbs = [
 
 function showCelebration(category) {
 
-  const goal = goals[category];
+  const goal =
+    goals[category];
 
-  const count = counts[category];
+  const count =
+    counts[category];
 
   const title =
-    document.getElementById("celebrationTitle");
+    document.getElementById(
+      "celebrationTitle"
+    );
 
   const subtitle =
-    document.getElementById("celebrationSubtitle");
+    document.getElementById(
+      "celebrationSubtitle"
+    );
 
-  if (count === goal) {
+  if (isWholeWeekComplete()) {
+
+    title.textContent =
+      "WEEK COMPLETE 🎉";
+
+    subtitle.textContent =
+      "Holy shit. You actually did everything.";
+
+  } else if (count === goal) {
 
     title.textContent =
       `${category} complete`;
@@ -542,14 +905,6 @@ function showCelebration(category) {
     subtitle.textContent =
       "That's another goal checked off. " +
       getRandomBlurb();
-
-  } else if (isWholeWeekComplete()) {
-
-    title.textContent =
-      "WEEK COMPLETE 🎉";
-
-    subtitle.textContent =
-      "Holy shit. You actually did everything.";
 
   } else {
 
@@ -572,7 +927,9 @@ function showCelebration(category) {
 function getRandomBlurb() {
 
   return blurbs[
-    Math.floor(Math.random() * blurbs.length)
+    Math.floor(
+      Math.random() * blurbs.length
+    )
   ];
 
 }
@@ -581,7 +938,10 @@ function isWholeWeekComplete() {
 
   return Object.keys(goals).every(category => {
 
-    return (counts[category] || 0) >= goals[category];
+    return (
+      (counts[category] || 0)
+      >= goals[category]
+    );
 
   });
 
@@ -594,7 +954,8 @@ function makeConfetti() {
     const piece =
       document.createElement("div");
 
-    piece.className = "confetti";
+    piece.className =
+      "confetti";
 
     piece.style.setProperty(
       "--x",
@@ -617,7 +978,9 @@ function makeConfetti() {
     document.body.appendChild(piece);
 
     setTimeout(() => {
+
       piece.remove();
+
     }, 1200);
 
   }
@@ -634,8 +997,13 @@ function hideCelebration() {
 
 function closeCelebration(event) {
 
-  if (event.target.id === "celebration") {
+  if (
+    event.target.id ===
+    "celebration"
+  ) {
+
     hideCelebration();
+
   }
 
 }
@@ -652,10 +1020,16 @@ function editGoals() {
         goals[category]
       );
 
-    if (value !== null && value !== "") {
+    if (
+      value !== null &&
+      value !== ""
+    ) {
 
       newGoals[category] =
-        Math.max(parseInt(value) || 1, 1);
+        Math.max(
+          parseInt(value) || 1,
+          1
+        );
 
     } else {
 
