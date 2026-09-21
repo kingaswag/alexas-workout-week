@@ -1,0 +1,8 @@
+{
+  "name": "My Workout Week",
+  "short_name": "Workout Week",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f7f3ee",
+  "theme_color": "#f7f3ee"
+}
