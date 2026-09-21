@@ -1,300 +1,694 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>My Workout Week</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f7f3ee">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-<style>
-body {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f7f3ee;
-  color: #292522;
-  margin: 0;
-  padding: 20px;
-}
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icon.png">
 
-.container {
-  max-width: 600px;
-  margin: auto;
-}
+  <title>My Workout Week</title>
 
-h1 {
-  margin-bottom: 5px;
-}
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-.subtitle {
-  color: #777;
-  margin-bottom: 25px;
-}
+    body {
+      margin: 0;
+      padding: 24px 18px 40px;
+      background: #f7f3ee;
+      color: #252525;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+        "SF Pro Text", Arial, sans-serif;
+    }
 
-.card {
-  background: white;
-  border-radius: 18px;
-  padding: 18px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.06);
-}
+    .app {
+      max-width: 680px;
+      margin: 0 auto;
+    }
 
-.row {
-  display: flex;
-  justify-content: space-between;
-  font-weight: bold;
-}
+    h1 {
+      font-size: 32px;
+      margin: 8px 0 6px;
+      letter-spacing: -1px;
+    }
 
-.progress {
-  height: 9px;
-  background: #eee;
-  border-radius: 20px;
-  margin-top: 12px;
-  overflow: hidden;
-}
+    .subtitle {
+      color: #777;
+      margin-bottom: 28px;
+      font-size: 15px;
+    }
 
-.fill {
-  height: 100%;
-  background: #8d6e63;
-}
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
 
-.buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
 
-button {
-  border: none;
-  padding: 13px;
-  border-radius: 13px;
-  background: #292522;
-  color: white;
-  font-weight: bold;
-  font-size: 14px;
-}
+    .category {
+      font-size: 18px;
+      font-weight: 600;
+    }
 
-.secondary {
-  background: white;
-  color: #292522;
-  border: 1px solid #ddd;
-}
+    .count {
+      font-size: 14px;
+      color: #777;
+    }
 
-.todo {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid #eee;
-}
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: #ece9e5;
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
 
-.section {
-  font-weight: bold;
-  margin: 25px 0 10px;
-}
-</style>
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: #252525;
+      border-radius: 99px;
+      transition: width 0.35s ease;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .log-btn {
+      background: #252525;
+      color: white;
+    }
+
+    .undo-btn {
+      background: #f1efec;
+      color: #333;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .remaining {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .settings-btn {
+      width: 100%;
+      background: white;
+      color: #555;
+      border: 1px solid #e5e1dc;
+      margin-top: 4px;
+    }
+
+    .reset-btn {
+      width: 100%;
+      background: transparent;
+      color: #999;
+      margin-top: 8px;
+      font-weight: 500;
+    }
+
+    /* Celebration overlay */
+
+    .celebration {
+      position: fixed;
+      inset: 0;
+      background: rgba(247, 243, 238, 0.92);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      z-index: 1000;
+    }
+
+    .celebration.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .celebration-card {
+      width: 100%;
+      max-width: 360px;
+      background: white;
+      border-radius: 26px;
+      padding: 32px 24px 26px;
+      text-align: center;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+      transform: scale(0.9);
+      transition: transform 0.25s ease;
+    }
+
+    .celebration.show .celebration-card {
+      transform: scale(1);
+    }
+
+    .check {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 18px;
+      border-radius: 50%;
+      background: #252525;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 38px;
+      animation: pop 0.4s ease;
+    }
+
+    @keyframes pop {
+      0% {
+        transform: scale(0.5);
+      }
+      70% {
+        transform: scale(1.12);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .celebration-title {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .celebration-subtitle {
+      color: #777;
+      font-size: 15px;
+      line-height: 1.45;
+      margin-bottom: 22px;
+    }
+
+    .celebration-close {
+      width: 100%;
+      background: #252525;
+      color: white;
+    }
+
+    /* Confetti */
+
+    .confetti {
+      position: fixed;
+      width: 7px;
+      height: 12px;
+      top: 45%;
+      left: 50%;
+      z-index: 1100;
+      pointer-events: none;
+      animation: confetti-fall 1s ease-out forwards;
+    }
+
+    @keyframes confetti-fall {
+      0% {
+        transform: translate(0, 0) rotate(0deg);
+        opacity: 1;
+      }
+
+      100% {
+        transform:
+          translate(var(--x), var(--y))
+          rotate(var(--r));
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 20px 14px 32px;
+      }
+
+      h1 {
+        font-size: 29px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="app">
 
-<h1>My Workout Week</h1>
+  <h1>My Workout Week</h1>
+  <div class="subtitle">Choose what you want to do. I'll keep track.</div>
 
-<div class="subtitle" id="week"></div>
+  <div id="cards"></div>
 
-<div id="goals"></div>
+  <div class="card">
+    <div class="section-title">Still to do</div>
+    <div id="remaining" class="remaining"></div>
+  </div>
 
-<div class="section">What are you doing today?</div>
+  <div class="card">
+    <button class="settings-btn" onclick="editGoals()">
+      Edit weekly goals
+    </button>
 
-<div class="buttons" id="buttons"></div>
+    <button class="reset-btn" onclick="resetWeek()">
+      Reset this week
+    </button>
+  </div>
 
-<div class="section">Still to do</div>
-
-<div class="card" id="remaining"></div>
-
-<div class="buttons">
-<button class="secondary" onclick="undo()">↩ Undo</button>
-<button class="secondary" onclick="resetWeek()">Reset Week</button>
 </div>
 
+<!-- Celebration -->
+
+<div id="celebration" class="celebration" onclick="closeCelebration(event)">
+  <div class="celebration-card">
+
+    <div class="check">✓</div>
+
+    <div id="celebrationTitle" class="celebration-title">
+      Workout complete
+    </div>
+
+    <div id="celebrationSubtitle" class="celebration-subtitle">
+      Nice work.
+    </div>
+
+    <button class="celebration-close" onclick="hideCelebration()">
+      Done
+    </button>
+
+  </div>
 </div>
 
 <script>
 
 const defaultGoals = {
-  "🍑 Glutes": 2,
-  "💪 Upper Body": 2,
-  "🦴 Scoliosis": 3,
-  "🚶 Cardio": 1,
-  "🔥 Core": 1
+  "Glutes": 2,
+  "Upper Body": 2,
+  "Scoliosis Exercises": 3,
+  "Cardio": 1,
+  "Core": 1
 };
 
-let data = JSON.parse(localStorage.getItem("workoutWeek"));
+let goals = JSON.parse(localStorage.getItem("workoutGoals")) || defaultGoals;
 
-if (!data) {
-  data = {
-    goals: defaultGoals,
-    completed: {},
-    log: [],
-    week: getWeek()
-  };
-}
+function getWeekKey() {
+  const now = new Date();
 
-function getWeek() {
-  const d = new Date();
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const day = now.getDay();
 
-  const monday = new Date(d.setDate(diff));
+  const monday = new Date(now);
+
+  const diff = day === 0 ? -6 : 1 - day;
+
+  monday.setDate(now.getDate() + diff);
+
+  monday.setHours(0, 0, 0, 0);
 
   return monday.toISOString().split("T")[0];
 }
 
-function checkWeek() {
+const currentWeek = getWeekKey();
 
-  const currentWeek = getWeek();
+let savedWeek = localStorage.getItem("workoutWeek");
 
-  if (data.week !== currentWeek) {
-
-    data.completed = {};
-    data.log = [];
-    data.week = currentWeek;
-
-    save();
-  }
+if (savedWeek !== currentWeek) {
+  localStorage.setItem("workoutWeek", currentWeek);
+  localStorage.setItem("workoutCounts", JSON.stringify({}));
 }
+
+let counts =
+  JSON.parse(localStorage.getItem("workoutCounts")) || {};
 
 function save() {
-  localStorage.setItem("workoutWeek", JSON.stringify(data));
-}
-
-function logWorkout(type) {
-
-  data.completed[type] = (data.completed[type] || 0) + 1;
-
-  data.log.push(type);
-
-  save();
-
-  render();
-}
-
-function undo() {
-
-  if (data.log.length === 0) return;
-
-  const last = data.log.pop();
-
-  data.completed[last]--;
-
-  save();
-
-  render();
-}
-
-function resetWeek() {
-
-  if (!confirm("Reset your workouts for this week?")) return;
-
-  data.completed = {};
-  data.log = [];
-
-  save();
-
-  render();
+  localStorage.setItem("workoutCounts", JSON.stringify(counts));
+  localStorage.setItem("workoutGoals", JSON.stringify(goals));
 }
 
 function render() {
 
-  checkWeek();
+  const cards = document.getElementById("cards");
 
-  const monday = new Date(data.week + "T12:00:00");
+  cards.innerHTML = "";
 
-  document.getElementById("week").innerText =
-    "Week of " +
-    monday.toLocaleDateString(undefined, {
-      month: "long",
-      day: "numeric"
-    });
+  Object.keys(goals).forEach(category => {
 
-  let goalsHTML = "";
+    const goal = goals[category];
 
-  for (const type in data.goals) {
+    const count = counts[category] || 0;
 
-    const goal = data.goals[type];
+    const percentage = Math.min((count / goal) * 100, 100);
 
-    const completed = data.completed[type] || 0;
+    const card = document.createElement("div");
 
-    const percent =
-      Math.min((completed / goal) * 100, 100);
+    card.className = "card";
 
-    goalsHTML += `
-      <div class="card">
+    card.innerHTML = `
+      <div class="card-top">
+        <div class="category">${category}</div>
+        <div class="count">${count} / ${goal}</div>
+      </div>
 
-        <div class="row">
-          <span>${type}</span>
-          <span>${completed} / ${goal}</span>
-        </div>
+      <div class="progress-track">
+        <div
+          class="progress-bar"
+          style="width:${percentage}%"
+        ></div>
+      </div>
 
-        <div class="progress">
-          <div class="fill"
-               style="width:${percent}%">
-          </div>
-        </div>
+      <div class="buttons">
+
+        <button
+          class="log-btn"
+          onclick="logWorkout('${category}')"
+        >
+          + Log ${category}
+        </button>
+
+        <button
+          class="undo-btn"
+          onclick="undoWorkout('${category}')"
+        >
+          Undo
+        </button>
 
       </div>
     `;
-  }
 
-  document.getElementById("goals").innerHTML =
-    goalsHTML;
+    cards.appendChild(card);
 
-  let buttonsHTML = "";
+  });
 
-  for (const type in data.goals) {
+  renderRemaining();
+}
 
-    buttonsHTML += `
-      <button onclick="logWorkout('${type}')">
-        + ${type}
-      </button>
-    `;
-  }
+function renderRemaining() {
 
-  document.getElementById("buttons").innerHTML =
-    buttonsHTML;
+  const remaining = document.getElementById("remaining");
 
-  let remainingHTML = "";
+  const unfinished = [];
 
-  let totalRemaining = 0;
+  Object.keys(goals).forEach(category => {
 
-  for (const type in data.goals) {
+    const goal = goals[category];
 
-    const remaining =
-      Math.max(
-        data.goals[type] -
-        (data.completed[type] || 0),
-        0
+    const count = counts[category] || 0;
+
+    const left = Math.max(goal - count, 0);
+
+    if (left > 0) {
+
+      unfinished.push(
+        `${category}: ${left} more`
       );
 
-    if (remaining > 0) {
-
-      totalRemaining += remaining;
-
-      remainingHTML += `
-        <div class="todo">
-          <span>${type}</span>
-          <strong>${remaining} more</strong>
-        </div>
-      `;
     }
+
+  });
+
+  if (unfinished.length === 0) {
+
+    remaining.innerHTML =
+      "<strong>Everything is complete. 🎉</strong>";
+
+  } else {
+
+    remaining.innerHTML =
+      unfinished.join("<br>");
+
+  }
+}
+
+function logWorkout(category) {
+
+  counts[category] = (counts[category] || 0) + 1;
+
+  save();
+
+  render();
+
+  showCelebration(category);
+
+}
+
+function undoWorkout(category) {
+
+  if ((counts[category] || 0) > 0) {
+
+    counts[category]--;
+
+    save();
+
+    render();
+
   }
 
-  if (totalRemaining === 0) {
+}
 
-    remainingHTML =
-      "<strong>🎉 You hit all your goals!</strong>";
+const blurbs = [
+
+  "Okayyyy, we're back.",
+
+  "You could be scrolling. But here we are.",
+
+  "Unfortunately, the glutes are not going to grow themselves.",
+
+  "One more workout for the plot.",
+
+  "Consistency is hot.",
+
+  "Your dumbbells missed you.",
+
+  "No thoughts. Just reps.",
+
+  "Clock in, bestie.",
+
+  "Get your little workout in.",
+
+  "That's another one for the books.",
+
+  "Future you says thanks.",
+
+  "Look at you being consistent.",
+
+  "We love a productive queen.",
+
+  "Ass officially clocked in.",
+
+  "More reps, less excuses.",
+
+  "You said you wanted results. I have receipts.",
+
+  "Character development.",
+
+  "Tiny workout. Big slay.",
+
+  "The group chat would be proud.",
+
+  "You actually did it. Crazy."
+
+];
+
+function showCelebration(category) {
+
+  const goal = goals[category];
+
+  const count = counts[category];
+
+  const title =
+    document.getElementById("celebrationTitle");
+
+  const subtitle =
+    document.getElementById("celebrationSubtitle");
+
+  if (count === goal) {
+
+    title.textContent =
+      `${category} complete`;
+
+    subtitle.textContent =
+      "That's another goal checked off. " +
+      getRandomBlurb();
+
+  } else if (isWholeWeekComplete()) {
+
+    title.textContent =
+      "WEEK COMPLETE 🎉";
+
+    subtitle.textContent =
+      "Holy shit. You actually did everything.";
+
+  } else {
+
+    title.textContent =
+      "Workout complete";
+
+    subtitle.textContent =
+      getRandomBlurb();
 
   }
 
-  document.getElementById("remaining").innerHTML =
-    remainingHTML;
+  document
+    .getElementById("celebration")
+    .classList.add("show");
+
+  makeConfetti();
+
+}
+
+function getRandomBlurb() {
+
+  return blurbs[
+    Math.floor(Math.random() * blurbs.length)
+  ];
+
+}
+
+function isWholeWeekComplete() {
+
+  return Object.keys(goals).every(category => {
+
+    return (counts[category] || 0) >= goals[category];
+
+  });
+
+}
+
+function makeConfetti() {
+
+  for (let i = 0; i < 28; i++) {
+
+    const piece =
+      document.createElement("div");
+
+    piece.className = "confetti";
+
+    piece.style.setProperty(
+      "--x",
+      `${Math.random() * 320 - 160}px`
+    );
+
+    piece.style.setProperty(
+      "--y",
+      `${Math.random() * 420 - 160}px`
+    );
+
+    piece.style.setProperty(
+      "--r",
+      `${Math.random() * 720 - 360}deg`
+    );
+
+    piece.style.animationDelay =
+      `${Math.random() * 0.15}s`;
+
+    document.body.appendChild(piece);
+
+    setTimeout(() => {
+      piece.remove();
+    }, 1200);
+
+  }
+
+}
+
+function hideCelebration() {
+
+  document
+    .getElementById("celebration")
+    .classList.remove("show");
+
+}
+
+function closeCelebration(event) {
+
+  if (event.target.id === "celebration") {
+    hideCelebration();
+  }
+
+}
+
+function editGoals() {
+
+  const newGoals = {};
+
+  Object.keys(goals).forEach(category => {
+
+    const value =
+      prompt(
+        `Weekly goal for ${category}:`,
+        goals[category]
+      );
+
+    if (value !== null && value !== "") {
+
+      newGoals[category] =
+        Math.max(parseInt(value) || 1, 1);
+
+    } else {
+
+      newGoals[category] =
+        goals[category];
+
+    }
+
+  });
+
+  goals = newGoals;
+
+  save();
+
+  render();
+
+}
+
+function resetWeek() {
+
+  const confirmed =
+    confirm(
+      "Reset all workout counts for this week?"
+    );
+
+  if (!confirmed) return;
+
+  counts = {};
+
+  save();
+
+  render();
+
 }
 
 render();
