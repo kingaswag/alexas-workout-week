@@ -1,472 +1,636 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#f7f3ee">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f7f3ee">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" href="./icon.png">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon.png">
 
-  <title>My Workout Week</title>
+<title>My Workout Week</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<style>
+* {
+box-sizing: border-box;
+}
 
-    body {
-      margin: 0;
-      padding: 24px 18px 40px;
-      background: #f7f3ee;
-      color: #252525;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
-        "SF Pro Text", Arial, sans-serif;
-    }
+body {
+margin: 0;
+padding: 24px 18px 40px;
+background: #f7f3ee;
+color: #252525;
+font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+"SF Pro Text", Arial, sans-serif;
+}
 
-    .app {
-      max-width: 680px;
-      margin: 0 auto;
-    }
+.app {
+max-width: 680px;
+margin: 0 auto;
+}
 
-    h1 {
-      font-size: 32px;
-      margin: 8px 0 6px;
-      letter-spacing: -1px;
-    }
+h1 {
+font-size: 32px;
+margin: 8px 0 6px;
+letter-spacing: -1px;
+}
 
-    .subtitle {
-      color: #777;
-      margin-bottom: 28px;
-      font-size: 15px;
-    }
+.subtitle {
+color: #777;
+margin-bottom: 28px;
+font-size: 15px;
+}
 
-    .card {
-      background: white;
-      border-radius: 18px;
-      padding: 20px;
-      margin-bottom: 14px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    }
+.card {
+background: white;
+border-radius: 18px;
+padding: 20px;
+margin-bottom: 14px;
+box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
 
-    /* Weekly progress ring */
+/* Weekly progress ring */
 
-    .weekly-progress {
-      text-align: center;
-      padding: 24px 20px 22px;
-      margin-bottom: 14px;
-    }
+.weekly-progress {
+text-align: center;
+padding: 24px 20px 22px;
+margin-bottom: 14px;
+}
 
-    .ring-wrap {
-      position: relative;
-      width: 220px;
-      height: 220px;
-      margin: 0 auto 18px;
-    }
+.ring-wrap {
+position: relative;
+width: 220px;
+height: 220px;
+margin: 0 auto 18px;
+}
 
-    .ring-svg {
-      width: 100%;
-      height: 100%;
-      transform: rotate(-90deg);
-      overflow: visible;
-    }
+.ring-svg {
+width: 100%;
+height: 100%;
+transform: rotate(-90deg);
+overflow: visible;
+}
 
-    .ring-center {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-    }
+.ring-center {
+position: absolute;
+inset: 0;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+pointer-events: none;
+}
 
-    .ring-percent {
-      font-size: 38px;
-      font-weight: 700;
-      letter-spacing: -1.5px;
-      line-height: 1;
-    }
+.ring-percent {
+font-size: 38px;
+font-weight: 700;
+letter-spacing: -1.5px;
+line-height: 1;
+}
 
-    .ring-count {
-      color: #777;
-      font-size: 14px;
-      margin-top: 7px;
-    }
+.ring-count {
+color: #777;
+font-size: 14px;
+margin-top: 7px;
+}
 
-    .ring-legend {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 9px 15px;
-      margin-top: 4px;
-    }
+.ring-legend {
+display: flex;
+flex-wrap: wrap;
+justify-content: center;
+gap: 9px 15px;
+margin-top: 4px;
+}
 
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: #666;
-      font-size: 12px;
-    }
+.legend-item {
+display: flex;
+align-items: center;
+gap: 6px;
+color: #666;
+font-size: 12px;
+}
 
-    .legend-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
+.legend-dot {
+width: 8px;
+height: 8px;
+border-radius: 50%;
+flex-shrink: 0;
+}
 
-    .ring-empty {
-      stroke: #eeeae6;
-    }
+.ring-empty {
+stroke: #eeeae6;
+}
 
-    .ring-segment {
-      fill: none;
-      stroke-width: 18;
-      stroke-linecap: butt;
-      transition: stroke-dasharray 0.4s ease;
-    }
+.ring-segment {
+fill: none;
+stroke-width: 18;
+stroke-linecap: butt;
+transition: stroke-dasharray 0.4s ease;
+}
 
-    .card-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
+.card-top {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 12px;
+}
 
-    .category {
-      font-size: 18px;
-      font-weight: 600;
-    }
+.category {
+font-size: 18px;
+font-weight: 600;
+}
 
-    .count {
-      font-size: 14px;
-      color: #777;
-    }
+.count {
+font-size: 14px;
+color: #777;
+}
 
-    .progress-track {
-      width: 100%;
-      height: 8px;
-      background: #ece9e5;
-      border-radius: 99px;
-      overflow: hidden;
-      margin-bottom: 16px;
-    }
+.progress-track {
+width: 100%;
+height: 8px;
+background: #ece9e5;
+border-radius: 99px;
+overflow: hidden;
+margin-bottom: 16px;
+}
 
-    .progress-bar {
-      height: 100%;
-      width: 0%;
-      background: #252525;
-      border-radius: 99px;
-      transition: width 0.35s ease;
-    }
+.progress-bar {
+height: 100%;
+width: 0%;
+background: #252525;
+border-radius: 99px;
+transition: width 0.35s ease;
+}
 
-    .buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
+.buttons {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 8px;
+}
 
-    button {
-      border: 0;
-      border-radius: 12px;
-      padding: 12px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-    }
+button {
+border: 0;
+border-radius: 12px;
+padding: 12px;
+font-size: 14px;
+font-weight: 600;
+cursor: pointer;
+font-family: inherit;
+}
 
-    .log-btn {
-      background: #252525;
-      color: white;
-    }
+.log-btn {
+background: #252525;
+color: white;
+}
 
-    .undo-btn {
-      background: #f1efec;
-      color: #333;
-    }
+.undo-btn {
+background: #f1efec;
+color: #333;
+}
 
-    .section-title {
-      font-size: 15px;
-      font-weight: 600;
-      margin-bottom: 12px;
-    }
+.section-title {
+font-size: 15px;
+font-weight: 600;
+margin-bottom: 12px;
+}
 
-    .remaining {
-      color: #666;
-      font-size: 14px;
-      line-height: 1.6;
-    }
+.remaining {
+color: #666;
+font-size: 14px;
+line-height: 1.6;
+}
 
-    .settings-btn {
-      width: 100%;
-      background: white;
-      color: #555;
-      border: 1px solid #e5e1dc;
-      margin-top: 4px;
-    }
+.settings-btn {
+width: 100%;
+background: white;
+color: #555;
+border: 1px solid #e5e1dc;
+margin-top: 4px;
+}
 
-    .reset-btn {
-      width: 100%;
-      background: transparent;
-      color: #999;
-      margin-top: 8px;
-      font-weight: 500;
-    }
+/* Workout editor */
 
-    /* Celebration overlay */
+.editor {
+position: fixed;
+inset: 0;
+background: rgba(37, 37, 37, 0.35);
+display: flex;
+align-items: flex-end;
+justify-content: center;
+opacity: 0;
+pointer-events: none;
+transition: opacity 0.2s ease;
+z-index: 900;
+}
 
-    .celebration {
-      position: fixed;
-      inset: 0;
-      background: rgba(247, 243, 238, 0.92);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease;
-      z-index: 1000;
-    }
+.editor.show {
+opacity: 1;
+pointer-events: auto;
+}
 
-    .celebration.show {
-      opacity: 1;
-      pointer-events: auto;
-    }
+.editor-card {
+width: 100%;
+max-width: 680px;
+max-height: 88vh;
+overflow-y: auto;
+-webkit-overflow-scrolling: touch;
+background: white;
+border-radius: 26px 26px 0 0;
+padding: 24px 18px calc(22px + env(safe-area-inset-bottom, 0px));
+transform: translateY(30px);
+transition: transform 0.25s ease;
+}
 
-    .celebration-card {
-      width: 100%;
-      max-width: 360px;
-      background: white;
-      border-radius: 26px;
-      padding: 32px 24px 26px;
-      text-align: center;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.12);
-      transform: scale(0.9);
-      transition: transform 0.25s ease;
-    }
+.editor.show .editor-card {
+transform: translateY(0);
+}
 
-    .celebration.show .celebration-card {
-      transform: scale(1);
-    }
+.editor-title {
+font-size: 22px;
+font-weight: 700;
+letter-spacing: -0.5px;
+margin-bottom: 4px;
+}
 
-    .check {
-      width: 72px;
-      height: 72px;
-      margin: 0 auto 18px;
-      border-radius: 50%;
-      background: #252525;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 38px;
-      animation: pop 0.4s ease;
-    }
+.editor-hint {
+color: #777;
+font-size: 14px;
+line-height: 1.45;
+margin-bottom: 16px;
+}
 
-    @keyframes pop {
-      0% {
-        transform: scale(0.5);
-      }
-      70% {
-        transform: scale(1.12);
-      }
-      100% {
-        transform: scale(1);
-      }
-    }
+.editor-row {
+display: flex;
+align-items: center;
+gap: 8px;
+margin-bottom: 10px;
+}
 
-    .celebration-title {
-      font-size: 24px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      margin-bottom: 8px;
-    }
+.editor-dot {
+width: 12px;
+height: 12px;
+border-radius: 50%;
+flex-shrink: 0;
+}
 
-    .celebration-subtitle {
-      color: #777;
-      font-size: 15px;
-      line-height: 1.45;
-      margin-bottom: 22px;
-    }
+.editor-name {
+flex: 1;
+min-width: 0;
+border: 1px solid #e5e1dc;
+border-radius: 12px;
+padding: 11px 12px;
+font-size: 16px;
+font-family: inherit;
+color: #252525;
+background: white;
+}
 
-    .celebration-close {
-      width: 100%;
-      background: #252525;
-      color: white;
-    }
+.editor-name:focus {
+outline: 2px solid #252525;
+outline-offset: 1px;
+}
 
-    /* Confetti */
+.stepper {
+display: flex;
+align-items: center;
+background: #f1efec;
+border-radius: 12px;
+flex-shrink: 0;
+}
 
-    .confetti {
-      position: fixed;
-      width: 7px;
-      height: 12px;
-      top: 45%;
-      left: 50%;
-      z-index: 1100;
-      pointer-events: none;
-      animation: confetti-fall 1s ease-out forwards;
-    }
+.stepper button {
+width: 36px;
+height: 44px;
+padding: 0;
+background: transparent;
+color: #333;
+font-size: 20px;
+font-weight: 500;
+}
 
-    @keyframes confetti-fall {
-      0% {
-        transform: translate(0, 0) rotate(0deg);
-        opacity: 1;
-      }
+.stepper-value {
+width: 22px;
+text-align: center;
+font-size: 16px;
+font-weight: 600;
+}
 
-      100% {
-        transform:
-          translate(var(--x), var(--y))
-          rotate(var(--r));
-        opacity: 0;
-      }
-    }
+.remove-btn {
+width: 36px;
+height: 44px;
+padding: 0;
+background: transparent;
+color: #b5b0aa;
+font-size: 18px;
+flex-shrink: 0;
+}
 
-    @media (max-width: 480px) {
-      body {
-        padding: 20px 14px 32px;
-      }
+.add-btn {
+width: 100%;
+background: white;
+color: #555;
+border: 1px dashed #cfc9c2;
+margin: 4px 0 18px;
+}
 
-      h1 {
-        font-size: 29px;
-      }
+.reset-btn {
+width: 100%;
+background: transparent;
+color: #999;
+margin-top: 8px;
+font-weight: 500;
+}
 
-      .card {
-        padding: 18px;
-      }
+/* Celebration overlay */
 
-      .ring-wrap {
-        width: 200px;
-        height: 200px;
-      }
+.celebration {
+position: fixed;
+inset: 0;
+background: rgba(247, 243, 238, 0.92);
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 24px;
+opacity: 0;
+pointer-events: none;
+transition: opacity 0.2s ease;
+z-index: 1000;
+}
 
-      .ring-percent {
-        font-size: 34px;
-      }
-    }
-  </style>
+.celebration.show {
+opacity: 1;
+pointer-events: auto;
+}
+
+.celebration-card {
+width: 100%;
+max-width: 360px;
+background: white;
+border-radius: 26px;
+padding: 32px 24px 26px;
+text-align: center;
+box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+transform: scale(0.9);
+transition: transform 0.25s ease;
+}
+
+.celebration.show .celebration-card {
+transform: scale(1);
+}
+
+.check {
+width: 72px;
+height: 72px;
+margin: 0 auto 18px;
+border-radius: 50%;
+background: #252525;
+color: white;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 38px;
+animation: pop 0.4s ease;
+}
+
+@keyframes pop {
+0% {
+transform: scale(0.5);
+}
+70% {
+transform: scale(1.12);
+}
+100% {
+transform: scale(1);
+}
+}
+
+.celebration-title {
+font-size: 24px;
+font-weight: 700;
+letter-spacing: -0.5px;
+margin-bottom: 8px;
+}
+
+.celebration-subtitle {
+color: #777;
+font-size: 15px;
+line-height: 1.45;
+margin-bottom: 22px;
+}
+
+.celebration-close {
+width: 100%;
+background: #252525;
+color: white;
+}
+
+/* Confetti */
+
+.confetti {
+position: fixed;
+width: 7px;
+height: 12px;
+top: 45%;
+left: 50%;
+z-index: 1100;
+pointer-events: none;
+animation: confetti-fall 1s ease-out forwards;
+}
+
+@keyframes confetti-fall {
+0% {
+transform: translate(0, 0) rotate(0deg);
+opacity: 1;
+}
+
+100% {
+transform:
+translate(var(--x), var(--y))
+rotate(var(--r));
+opacity: 0;
+}
+}
+
+@media (max-width: 480px) {
+body {
+padding: 20px 14px 32px;
+}
+
+h1 {
+font-size: 29px;
+}
+
+.card {
+padding: 18px;
+}
+
+.ring-wrap {
+width: 200px;
+height: 200px;
+}
+
+.ring-percent {
+font-size: 34px;
+}
+}
+</style>
 </head>
 
 <body>
 
 <div class="app">
 
-  <h1>My Workout Week</h1>
-  <div class="subtitle">Choose what you want to do. I'll keep track.</div>
+<h1>My Workout Week</h1>
+<div class="subtitle">Choose what you want to do. I'll keep track.</div>
 
-  <!-- Weekly Progress Ring -->
+<!-- Weekly Progress Ring -->
 
-  <div class="card weekly-progress">
+<div class="card weekly-progress">
 
-    <div class="ring-wrap">
+<div class="ring-wrap">
 
-      <svg
-        id="progressRing"
-        class="ring-svg"
-        viewBox="0 0 220 220"
-        aria-label="Weekly workout progress"
-      ></svg>
+<svg
+id="progressRing"
+class="ring-svg"
+viewBox="0 0 220 220"
+aria-label="Weekly workout progress"
+></svg>
 
-      <div class="ring-center">
+<div class="ring-center">
 
-        <div id="ringPercent" class="ring-percent">
-          0%
-        </div>
+<div id="ringPercent" class="ring-percent">
+0%
+</div>
 
-        <div id="ringCount" class="ring-count">
-          0 / 9
-        </div>
+<div id="ringCount" class="ring-count">
+0 / 9
+</div>
 
-      </div>
+</div>
 
-    </div>
+</div>
 
-    <div id="ringLegend" class="ring-legend"></div>
+<div id="ringLegend" class="ring-legend"></div>
 
-  </div>
+</div>
 
-  <div id="cards"></div>
+<div id="cards"></div>
 
-  <div class="card">
-    <div class="section-title">Still to do</div>
-    <div id="remaining" class="remaining"></div>
-  </div>
+<div class="card">
+<div class="section-title">Still to do</div>
+<div id="remaining" class="remaining"></div>
+</div>
 
-  <div class="card">
-    <button class="settings-btn" onclick="editGoals()">
-      Edit weekly goals
-    </button>
+<div class="card">
+<button class="settings-btn" onclick="editGoals()">
+Edit workouts &amp; goals
+</button>
 
-    <button class="reset-btn" onclick="resetWeek()">
-      Reset this week
-    </button>
-  </div>
+<button class="reset-btn" onclick="resetWeek()">
+Reset this week
+</button>
+</div>
 
+</div>
+
+<!-- Workout editor -->
+
+<div id="editor" class="editor" onclick="closeEditorBackdrop(event)">
+<div class="editor-card">
+
+<div class="editor-title">Edit workouts</div>
+
+<div class="editor-hint">
+Rename, add, or remove workout types, and set how many times a week you want to do each.
+</div>
+
+<div id="editorRows"></div>
+
+<button class="add-btn" onclick="addEditorRow()">
++ Add workout type
+</button>
+
+<div class="buttons">
+<button class="undo-btn" onclick="closeEditor()">Cancel</button>
+<button class="log-btn" onclick="saveEditor()">Save</button>
+</div>
+
+</div>
 </div>
 
 <!-- Celebration -->
 
 <div id="celebration" class="celebration" onclick="closeCelebration(event)">
-  <div class="celebration-card">
+<div class="celebration-card">
 
-    <div class="check">✓</div>
+<div class="check">✓</div>
 
-    <div id="celebrationTitle" class="celebration-title">
-      Workout complete
-    </div>
+<div id="celebrationTitle" class="celebration-title">
+Workout complete
+</div>
 
-    <div id="celebrationSubtitle" class="celebration-subtitle">
-      Nice work.
-    </div>
+<div id="celebrationSubtitle" class="celebration-subtitle">
+Nice work.
+</div>
 
-    <button class="celebration-close" onclick="hideCelebration()">
-      Done
-    </button>
+<button class="celebration-close" onclick="hideCelebration()">
+Done
+</button>
 
-  </div>
+</div>
 </div>
 
 <script>
 
 const defaultGoals = {
-  "Glutes": 2,
-  "Upper Body": 2,
-  "Scoliosis Exercises": 3,
-  "Cardio": 1,
-  "Core": 1
+"Glutes": 2,
+"Upper Body": 2,
+"Scoliosis Exercises": 3,
+"Cardio": 1,
+"Core": 1
 };
 
-const categoryColors = {
-  "Glutes": "#e8a6bd",
-  "Upper Body": "#91a8d0",
-  "Scoliosis Exercises": "#9bbf9b",
-  "Cardio": "#e2ad78",
-  "Core": "#b29acb"
-};
+/*
+Bright colors, handed out in order:
+the 1st workout type gets the 1st color, and so on.
+*/
+
+const palette = [
+"#ff4f9a",
+"#3d8bff",
+"#1fcf7c",
+"#ff9a1f",
+"#a05cff",
+"#12c4d6",
+"#ff5a4f",
+"#ffc928",
+"#7a6bff",
+"#8fd119"
+];
+
+function colorFor(index) {
+return palette[index % palette.length];
+}
 
 let goals = JSON.parse(localStorage.getItem("workoutGoals")) || defaultGoals;
 
 function getWeekKey() {
 
-  const now = new Date();
+const now = new Date();
 
-  const day = now.getDay();
+const day = now.getDay();
 
-  const monday = new Date(now);
+const monday = new Date(now);
 
-  const diff = day === 0 ? -6 : 1 - day;
+const diff = day === 0 ? -6 : 1 - day;
 
-  monday.setDate(now.getDate() + diff);
+monday.setDate(now.getDate() + diff);
 
-  monday.setHours(0, 0, 0, 0);
+monday.setHours(0, 0, 0, 0);
 
-  return monday.toISOString().split("T")[0];
+return monday.toISOString().split("T")[0];
 
 }
 
@@ -476,592 +640,780 @@ let savedWeek = localStorage.getItem("workoutWeek");
 
 if (savedWeek !== currentWeek) {
 
-  localStorage.setItem("workoutWeek", currentWeek);
+localStorage.setItem("workoutWeek", currentWeek);
 
-  localStorage.setItem("workoutCounts", JSON.stringify({}));
+localStorage.setItem("workoutCounts", JSON.stringify({}));
 
 }
 
 let counts =
-  JSON.parse(localStorage.getItem("workoutCounts")) || {};
+JSON.parse(localStorage.getItem("workoutCounts")) || {};
 
 function save() {
 
-  localStorage.setItem(
-    "workoutCounts",
-    JSON.stringify(counts)
-  );
+localStorage.setItem(
+"workoutCounts",
+JSON.stringify(counts)
+);
 
-  localStorage.setItem(
-    "workoutGoals",
-    JSON.stringify(goals)
-  );
+localStorage.setItem(
+"workoutGoals",
+JSON.stringify(goals)
+);
 
 }
 
 function render() {
 
-  const cards = document.getElementById("cards");
+const cards = document.getElementById("cards");
 
-  cards.innerHTML = "";
+cards.innerHTML = "";
 
-  Object.keys(goals).forEach(category => {
+Object.keys(goals).forEach((category, index) => {
 
-    const goal = goals[category];
+const goal = goals[category];
 
-    const count = counts[category] || 0;
+const count = counts[category] || 0;
 
-    const percentage =
-      Math.min((count / goal) * 100, 100);
+const percentage =
+Math.min((count / goal) * 100, 100);
 
-    const card =
-      document.createElement("div");
+const safeName = escapeHtml(category);
 
-    card.className = "card";
+const card =
+document.createElement("div");
 
-    card.innerHTML = `
-      <div class="card-top">
-        <div class="category">${category}</div>
-        <div class="count">${count} / ${goal}</div>
-      </div>
+card.className = "card";
 
-      <div class="progress-track">
-        <div
-          class="progress-bar"
-          style="width:${percentage}%"
-        ></div>
-      </div>
+card.innerHTML = `
+<div class="card-top">
+<div class="category">${safeName}</div>
+<div class="count">${count} / ${goal}</div>
+</div>
 
-      <div class="buttons">
+<div class="progress-track">
+<div
+class="progress-bar"
+style="width:${percentage}%; background:${colorFor(index)}"
+></div>
+</div>
 
-        <button
-          class="log-btn"
-          onclick="logWorkout('${category}')"
-        >
-          + Log ${category}
-        </button>
+<div class="buttons">
 
-        <button
-          class="undo-btn"
-          onclick="undoWorkout('${category}')"
-        >
-          Undo
-        </button>
+<button
+class="log-btn"
+onclick="logWorkout(${index})"
+>
++ Log ${safeName}
+</button>
 
-      </div>
-    `;
+<button
+class="undo-btn"
+onclick="undoWorkout(${index})"
+>
+Undo
+</button>
 
-    cards.appendChild(card);
+</div>
+`;
 
-  });
+cards.appendChild(card);
 
-  renderRemaining();
-  renderRing();
+});
+
+renderRemaining();
+renderRing();
+
+}
+
+function escapeHtml(text) {
+
+const div =
+document.createElement("div");
+
+div.textContent = text;
+
+return div.innerHTML;
 
 }
 
 function renderRemaining() {
 
-  const remaining =
-    document.getElementById("remaining");
+const remaining =
+document.getElementById("remaining");
 
-  const unfinished = [];
+const unfinished = [];
 
-  Object.keys(goals).forEach(category => {
+Object.keys(goals).forEach(category => {
 
-    const goal = goals[category];
+const goal = goals[category];
 
-    const count = counts[category] || 0;
+const count = counts[category] || 0;
 
-    const left =
-      Math.max(goal - count, 0);
+const left =
+Math.max(goal - count, 0);
 
-    if (left > 0) {
+if (left > 0) {
 
-      unfinished.push(
-        `${category}: ${left} more`
-      );
+unfinished.push(
+`${escapeHtml(category)}: ${left} more`
+);
 
-    }
+}
 
-  });
+});
 
-  if (unfinished.length === 0) {
+if (unfinished.length === 0) {
 
-    remaining.innerHTML =
-      "<strong>Everything is complete. 🎉</strong>";
+remaining.innerHTML =
+"<strong>Everything is complete. 🎉</strong>";
 
-  } else {
+} else {
 
-    remaining.innerHTML =
-      unfinished.join("<br>");
+remaining.innerHTML =
+unfinished.join("<br>");
 
-  }
+}
 
 }
 
 function renderRing() {
 
-  const svg =
-    document.getElementById("progressRing");
+const svg =
+document.getElementById("progressRing");
 
-  const legend =
-    document.getElementById("ringLegend");
+const legend =
+document.getElementById("ringLegend");
 
-  const percentText =
-    document.getElementById("ringPercent");
+const percentText =
+document.getElementById("ringPercent");
 
-  const countText =
-    document.getElementById("ringCount");
+const countText =
+document.getElementById("ringCount");
 
-  svg.innerHTML = "";
-  legend.innerHTML = "";
+svg.innerHTML = "";
+legend.innerHTML = "";
 
-  const categories =
-    Object.keys(goals);
+const categories =
+Object.keys(goals);
 
-  const totalGoal =
-    categories.reduce(
-      (sum, category) =>
-        sum + Number(goals[category]),
-      0
-    );
+const totalGoal =
+categories.reduce(
+(sum, category) =>
+sum + Number(goals[category]),
+0
+);
 
-  const totalCompleted =
-    categories.reduce(
-      (sum, category) =>
-        sum + Math.min(
-          counts[category] || 0,
-          goals[category]
-        ),
-      0
-    );
+const totalCompleted =
+categories.reduce(
+(sum, category) =>
+sum + Math.min(
+counts[category] || 0,
+goals[category]
+),
+0
+);
 
-  const overallPercent =
-    totalGoal === 0
-      ? 0
-      : Math.round(
-          (totalCompleted / totalGoal) * 100
-        );
+const overallPercent =
+totalGoal === 0
+? 0
+: Math.round(
+(totalCompleted / totalGoal) * 100
+);
 
-  percentText.textContent =
-    `${overallPercent}%`;
+percentText.textContent =
+`${overallPercent}%`;
 
-  countText.textContent =
-    `${totalCompleted} / ${totalGoal}`;
+countText.textContent =
+`${totalCompleted} / ${totalGoal}`;
 
-  const center = 110;
-  const radius = 82;
-  const circumference =
-    2 * Math.PI * radius;
+const center = 110;
+const radius = 82;
+const circumference =
+2 * Math.PI * radius;
 
-  /*
-    Draw one empty ring first.
-  */
+/*
+Draw one empty ring first.
+*/
 
-  const emptyCircle =
-    document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "circle"
-    );
+const emptyCircle =
+document.createElementNS(
+"http://www.w3.org/2000/svg",
+"circle"
+);
 
-  emptyCircle.setAttribute("cx", center);
-  emptyCircle.setAttribute("cy", center);
-  emptyCircle.setAttribute("r", radius);
-  emptyCircle.setAttribute("class", "ring-empty");
-  emptyCircle.setAttribute("fill", "none");
-  emptyCircle.setAttribute("stroke-width", "18");
+emptyCircle.setAttribute("cx", center);
+emptyCircle.setAttribute("cy", center);
+emptyCircle.setAttribute("r", radius);
+emptyCircle.setAttribute("class", "ring-empty");
+emptyCircle.setAttribute("fill", "none");
+emptyCircle.setAttribute("stroke-width", "18");
 
-  svg.appendChild(emptyCircle);
+svg.appendChild(emptyCircle);
 
-  /*
-    Each category gets a proportional
-    section of the circle.
-  */
+/*
+The ring fills up from the top, one color
+after another, with no empty space between.
+*/
 
-  let offset = 0;
+let offset = 0;
 
-  categories.forEach(category => {
+categories.forEach((category, index) => {
 
-    const goal =
-      Number(goals[category]);
+const goal =
+Number(goals[category]);
 
-    const completed =
-      Math.min(
-        counts[category] || 0,
-        goal
-      );
+const completed =
+Math.min(
+counts[category] || 0,
+goal
+);
 
-    const categoryShare =
-      totalGoal === 0
-        ? 0
-        : goal / totalGoal;
+const completedLength =
+totalGoal === 0
+? 0
+: circumference *
+(completed / totalGoal);
 
-    const sectionLength =
-      circumference * categoryShare;
+/*
+A tiny gap keeps the colors
+visually distinct.
+*/
 
-    const completedLength =
-      sectionLength *
-      (completed / goal);
+const gap = 2;
 
-    /*
-      Tiny gaps between segments make
-      the categories visually distinct.
-    */
+const visibleCompleted =
+Math.max(
+completedLength - gap,
+0
+);
 
-    const gap = 3;
+if (visibleCompleted > 0) {
 
-    const visibleCompleted =
-      Math.max(
-        completedLength - gap,
-        0
-      );
+const circle =
+document.createElementNS(
+"http://www.w3.org/2000/svg",
+"circle"
+);
 
-    if (visibleCompleted > 0) {
+circle.setAttribute("cx", center);
+circle.setAttribute("cy", center);
+circle.setAttribute("r", radius);
+circle.setAttribute("class", "ring-segment");
 
-      const circle =
-        document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "circle"
-        );
+circle.setAttribute(
+"stroke",
+colorFor(index)
+);
 
-      circle.setAttribute(
-        "cx",
-        center
-      );
+circle.setAttribute(
+"stroke-dasharray",
+`${visibleCompleted} ${circumference - visibleCompleted}`
+);
 
-      circle.setAttribute(
-        "cy",
-        center
-      );
+circle.setAttribute(
+"stroke-dashoffset",
+-offset
+);
 
-      circle.setAttribute(
-        "r",
-        radius
-      );
-
-      circle.setAttribute(
-        "class",
-        "ring-segment"
-      );
-
-      circle.setAttribute(
-        "stroke",
-        categoryColors[category] || "#252525"
-      );
-
-      circle.setAttribute(
-        "stroke-dasharray",
-        `${visibleCompleted} ${circumference - visibleCompleted}`
-      );
-
-      circle.setAttribute(
-        "stroke-dashoffset",
-        -offset
-      );
-
-      svg.appendChild(circle);
-
-    }
-
-    offset += sectionLength;
-
-    /*
-      Legend
-    */
-
-    const legendItem =
-      document.createElement("div");
-
-    legendItem.className =
-      "legend-item";
-
-    const dot =
-      document.createElement("span");
-
-    dot.className =
-      "legend-dot";
-
-    dot.style.background =
-      categoryColors[category] || "#252525";
-
-    const label =
-      document.createElement("span");
-
-    label.textContent =
-      category;
-
-    legendItem.appendChild(dot);
-    legendItem.appendChild(label);
-
-    legend.appendChild(legendItem);
-
-  });
+svg.appendChild(circle);
 
 }
 
-function logWorkout(category) {
+offset += completedLength;
 
-  counts[category] =
-    (counts[category] || 0) + 1;
+/*
+Legend
+*/
 
-  save();
+const legendItem =
+document.createElement("div");
 
-  render();
+legendItem.className =
+"legend-item";
 
-  showCelebration(category);
+const dot =
+document.createElement("span");
+
+dot.className =
+"legend-dot";
+
+dot.style.background =
+colorFor(index);
+
+const label =
+document.createElement("span");
+
+label.textContent =
+category;
+
+legendItem.appendChild(dot);
+legendItem.appendChild(label);
+
+legend.appendChild(legendItem);
+
+});
 
 }
 
-function undoWorkout(category) {
+function logWorkout(index) {
 
-  if ((counts[category] || 0) > 0) {
+const category =
+Object.keys(goals)[index];
 
-    counts[category]--;
+counts[category] =
+(counts[category] || 0) + 1;
 
-    save();
+save();
 
-    render();
+render();
 
-  }
+showCelebration(category);
+
+}
+
+function undoWorkout(index) {
+
+const category =
+Object.keys(goals)[index];
+
+if ((counts[category] || 0) > 0) {
+
+counts[category]--;
+
+save();
+
+render();
+
+}
 
 }
 
 const blurbs = [
 
-  "Okayyyy, we're back.",
+"Okayyyy, we're back.",
 
-  "You could be scrolling. But here we are.",
+"You could be scrolling. But here we are.",
 
-  "Unfortunately, the glutes are not going to grow themselves.",
+"Unfortunately, the glutes are not going to grow themselves.",
 
-  "One more workout for the plot.",
+"One more workout for the plot.",
 
-  "Consistency is hot.",
+"Consistency is hot.",
 
-  "Your dumbbells missed you.",
+"Your dumbbells missed you.",
 
-  "No thoughts. Just reps.",
+"No thoughts. Just reps.",
 
-  "Clock in, bestie.",
+"Clock in, bestie.",
 
-  "Get your little workout in.",
+"Get your little workout in.",
 
-  "That's another one for the books.",
+"That's another one for the books.",
 
-  "Future you says thanks.",
+"Future you says thanks.",
 
-  "Look at you being consistent.",
+"Look at you being consistent.",
 
-  "We love a productive queen.",
+"We love a productive queen.",
 
-  "Ass officially clocked in.",
+"Ass officially clocked in.",
 
-  "More reps, less excuses.",
+"More reps, less excuses.",
 
-  "You said you wanted results. I have receipts.",
+"You said you wanted results. I have receipts.",
 
-  "Character development.",
+"Character development.",
 
-  "Tiny workout. Big slay.",
+"Tiny workout. Big slay.",
 
-  "The group chat would be proud.",
+"The group chat would be proud.",
 
-  "You actually did it. Crazy."
+"You actually did it. Crazy."
 
 ];
 
 function showCelebration(category) {
 
-  const goal =
-    goals[category];
+const goal =
+goals[category];
 
-  const count =
-    counts[category];
+const count =
+counts[category];
 
-  const title =
-    document.getElementById(
-      "celebrationTitle"
-    );
+const title =
+document.getElementById(
+"celebrationTitle"
+);
 
-  const subtitle =
-    document.getElementById(
-      "celebrationSubtitle"
-    );
+const subtitle =
+document.getElementById(
+"celebrationSubtitle"
+);
 
-  if (isWholeWeekComplete()) {
+if (isWholeWeekComplete()) {
 
-    title.textContent =
-      "WEEK COMPLETE 🎉";
+title.textContent =
+"WEEK COMPLETE 🎉";
 
-    subtitle.textContent =
-      "Holy shit. You actually did everything.";
+subtitle.textContent =
+"Holy shit. You actually did everything.";
 
-  } else if (count === goal) {
+} else if (count === goal) {
 
-    title.textContent =
-      `${category} complete`;
+title.textContent =
+`${category} complete`;
 
-    subtitle.textContent =
-      "That's another goal checked off. " +
-      getRandomBlurb();
+subtitle.textContent =
+"That's another goal checked off. " +
+getRandomBlurb();
 
-  } else {
+} else {
 
-    title.textContent =
-      "Workout complete";
+title.textContent =
+"Workout complete";
 
-    subtitle.textContent =
-      getRandomBlurb();
+subtitle.textContent =
+getRandomBlurb();
 
-  }
+}
 
-  document
-    .getElementById("celebration")
-    .classList.add("show");
+document
+.getElementById("celebration")
+.classList.add("show");
 
-  makeConfetti();
+makeConfetti();
 
 }
 
 function getRandomBlurb() {
 
-  return blurbs[
-    Math.floor(
-      Math.random() * blurbs.length
-    )
-  ];
+return blurbs[
+Math.floor(
+Math.random() * blurbs.length
+)
+];
 
 }
 
 function isWholeWeekComplete() {
 
-  return Object.keys(goals).every(category => {
+return Object.keys(goals).every(category => {
 
-    return (
-      (counts[category] || 0)
-      >= goals[category]
-    );
+return (
+(counts[category] || 0)
+>= goals[category]
+);
 
-  });
+});
 
 }
 
 function makeConfetti() {
 
-  for (let i = 0; i < 28; i++) {
+for (let i = 0; i < 28; i++) {
 
-    const piece =
-      document.createElement("div");
+const piece =
+document.createElement("div");
 
-    piece.className =
-      "confetti";
+piece.className =
+"confetti";
 
-    piece.style.setProperty(
-      "--x",
-      `${Math.random() * 320 - 160}px`
-    );
+piece.style.background =
+colorFor(i);
 
-    piece.style.setProperty(
-      "--y",
-      `${Math.random() * 420 - 160}px`
-    );
+piece.style.setProperty(
+"--x",
+`${Math.random() * 320 - 160}px`
+);
 
-    piece.style.setProperty(
-      "--r",
-      `${Math.random() * 720 - 360}deg`
-    );
+piece.style.setProperty(
+"--y",
+`${Math.random() * 420 - 160}px`
+);
 
-    piece.style.animationDelay =
-      `${Math.random() * 0.15}s`;
+piece.style.setProperty(
+"--r",
+`${Math.random() * 720 - 360}deg`
+);
 
-    document.body.appendChild(piece);
+piece.style.animationDelay =
+`${Math.random() * 0.15}s`;
 
-    setTimeout(() => {
+document.body.appendChild(piece);
 
-      piece.remove();
+setTimeout(() => {
 
-    }, 1200);
+piece.remove();
 
-  }
+}, 1200);
+
+}
 
 }
 
 function hideCelebration() {
 
-  document
-    .getElementById("celebration")
-    .classList.remove("show");
+document
+.getElementById("celebration")
+.classList.remove("show");
 
 }
 
 function closeCelebration(event) {
 
-  if (
-    event.target.id ===
-    "celebration"
-  ) {
+if (
+event.target.id ===
+"celebration"
+) {
 
-    hideCelebration();
-
-  }
+hideCelebration();
 
 }
 
+}
+
+/*
+Workout editor:
+rename, add, remove, and set weekly goals.
+*/
+
+let editorRows = [];
+
 function editGoals() {
 
-  const newGoals = {};
+editorRows =
+Object.keys(goals).map(category => ({
+original: category,
+name: category,
+goal: Number(goals[category]) || 1
+}));
 
-  Object.keys(goals).forEach(category => {
+renderEditor();
 
-    const value =
-      prompt(
-        `Weekly goal for ${category}:`,
-        goals[category]
-      );
+document
+.getElementById("editor")
+.classList.add("show");
 
-    if (
-      value !== null &&
-      value !== ""
-    ) {
+}
 
-      newGoals[category] =
-        Math.max(
-          parseInt(value) || 1,
-          1
-        );
+function renderEditor() {
 
-    } else {
+const container =
+document.getElementById("editorRows");
 
-      newGoals[category] =
-        goals[category];
+container.innerHTML = "";
 
-    }
+editorRows.forEach((row, index) => {
 
-  });
+const rowEl =
+document.createElement("div");
 
-  goals = newGoals;
+rowEl.className = "editor-row";
 
-  save();
+const dot =
+document.createElement("span");
 
-  render();
+dot.className = "editor-dot";
+dot.style.background = colorFor(index);
+
+const input =
+document.createElement("input");
+
+input.className = "editor-name";
+input.type = "text";
+input.maxLength = 30;
+input.placeholder = "Workout name";
+input.value = row.name;
+input.setAttribute("aria-label", "Workout name");
+
+input.addEventListener("input", () => {
+row.name = input.value;
+});
+
+const stepper =
+document.createElement("div");
+
+stepper.className = "stepper";
+
+const minus =
+document.createElement("button");
+
+minus.textContent = "−";
+minus.setAttribute("aria-label", "Fewer times per week");
+
+const value =
+document.createElement("span");
+
+value.className = "stepper-value";
+value.textContent = row.goal;
+
+const plus =
+document.createElement("button");
+
+plus.textContent = "+";
+plus.setAttribute("aria-label", "More times per week");
+
+minus.addEventListener("click", () => {
+row.goal = Math.max(row.goal - 1, 1);
+value.textContent = row.goal;
+});
+
+plus.addEventListener("click", () => {
+row.goal = Math.min(row.goal + 1, 14);
+value.textContent = row.goal;
+});
+
+stepper.appendChild(minus);
+stepper.appendChild(value);
+stepper.appendChild(plus);
+
+const remove =
+document.createElement("button");
+
+remove.className = "remove-btn";
+remove.textContent = "✕";
+remove.setAttribute("aria-label", "Remove workout type");
+
+remove.addEventListener("click", () => {
+editorRows.splice(index, 1);
+renderEditor();
+});
+
+rowEl.appendChild(dot);
+rowEl.appendChild(input);
+rowEl.appendChild(stepper);
+rowEl.appendChild(remove);
+
+container.appendChild(rowEl);
+
+});
+
+}
+
+function addEditorRow() {
+
+editorRows.push({
+original: null,
+name: "",
+goal: 1
+});
+
+renderEditor();
+
+const inputs =
+document.querySelectorAll(".editor-name");
+
+inputs[inputs.length - 1].focus();
+
+}
+
+function saveEditor() {
+
+const rows =
+editorRows
+.map(row => ({
+original: row.original,
+name: row.name.trim(),
+goal: row.goal
+}))
+.filter(row => row.name !== "");
+
+if (rows.length === 0) {
+
+alert("Add at least one workout type.");
+
+return;
+
+}
+
+const seen = {};
+
+for (const row of rows) {
+
+const key = row.name.toLowerCase();
+
+if (seen[key]) {
+
+alert(
+`"${row.name}" is on the list twice. Give each workout a different name.`
+);
+
+return;
+
+}
+
+seen[key] = true;
+
+}
+
+/*
+Renamed workouts keep the progress
+already logged this week.
+*/
+
+const newGoals = {};
+const newCounts = {};
+
+rows.forEach(row => {
+
+newGoals[row.name] = row.goal;
+
+if (
+row.original !== null &&
+counts[row.original]
+) {
+
+newCounts[row.name] =
+counts[row.original];
+
+}
+
+});
+
+goals = newGoals;
+counts = newCounts;
+
+save();
+
+render();
+
+closeEditor();
+
+}
+
+function closeEditor() {
+
+document
+.getElementById("editor")
+.classList.remove("show");
+
+}
+
+function closeEditorBackdrop(event) {
+
+if (event.target.id === "editor") {
+
+closeEditor();
+
+}
 
 }
 
 function resetWeek() {
 
-  const confirmed =
-    confirm(
-      "Reset all workout counts for this week?"
-    );
+const confirmed =
+confirm(
+"Reset all workout counts for this week?"
+);
 
-  if (!confirmed) return;
+if (!confirmed) return;
 
-  counts = {};
+counts = {};
 
-  save();
+save();
 
-  render();
+render();
 
 }
 
